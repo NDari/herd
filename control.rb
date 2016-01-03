@@ -1,6 +1,8 @@
+require 'matrix'
 class Structure
 
-  attr_reader :title, :cellInfo, :coordType, :numAtoms
+  attr_reader :title, :cellInfo, :coordType, :numAtoms, :atomNames,
+    :atomCoors, :spaceGrp, :supercell, :cellType
 
   def initialize filename
     if File.extname(filename) == ".skl"
@@ -8,6 +10,7 @@ class Structure
       @cellInfo = getSklCell filename
       @coordType = getSklCoordType filename
       @numAtoms = getSklNumAtoms filename
+      @atomNames, @atomCoors = getSklAtomInfo filename
     end
   end
 
@@ -25,7 +28,7 @@ class Structure
   end
 
   def getSklCell sklFile
-    info = Array.new
+    info = []
     foundCell = false
     File.open(sklFile).each do |line|
       words = line.strip.split
@@ -67,6 +70,28 @@ class Structure
     abort("Could not find number of atoms in #{sklFile}")
   end
 
+  def getSklAtomInfo sklFile
+    c = []
+    a = []
+    f = File.open(sklFile)
+    while (line = f.gets)
+      words = line.strip.split
+      if words[0] == 'cell'
+        f.gets
+        f.gets
+        @numAtoms.times do
+          words = f.gets.strip.split
+          a.push words[0]
+          c.push [words[1].to_f, words[2].to_f, words[3].to_f]
+        end
+        break
+      end
+    end
+    return a, c
+  end
+
+
+
 
 end
 
@@ -75,3 +100,5 @@ puts f.title
 puts f.cellInfo
 puts f.coordType
 puts f.numAtoms
+puts f.atomNames[-1]
+puts f.atomCoors[-1]
